@@ -174,7 +174,7 @@ src/main/java/com/microservice/people/
 │   ├── SignupRequest.java
 │   ├── LoginRequest.java
 │   ├── UserResponse.java
-│   ├── UpdateUserRequest.java
+│   ├── UpdateProfileRequest.java
 │   ├── PasswordResetRequest.java
 │   ├── PasswordResetConfirmRequest.java
 │   ├── ChangePasswordRequest.java
@@ -243,8 +243,8 @@ LocalDateTime phoneVerifiedAt;
 LocalDateTime createdAt;
 ```
 
-### UpdateUserRequest
-Maps to `UserPersonalDetails` fields. All optional (user fills profile post-signup).
+### UpdateProfileRequest
+Maps to `UserProfile` fields. All optional (user fills profile post-signup).
 
 ```java
 @Size(max = 50)  String salutation;
@@ -455,7 +455,7 @@ Jackson `ObjectMapper.writeValueAsString()` for old/new values. Saves `AuditLog`
 6. `auditService.log(userId, "CREATE", "user_credentials", userId, null, userResponse, ip, ua)`
 7. Return `UserResponse`
 
-> No `UserPersonalDetails` created at signup. Profile filled separately post-signup.
+> No `UserProfile` created at signup. Profile filled separately post-signup.
 
 **`login(LoginRequest req, String ip, String ua) → String (JWT)`**
 1. `findByEmailAndStatusNot(email, DELETED)` → absent: audit `LOGIN_FAILED`, throw `AuthenticationFailedException`
@@ -527,14 +527,14 @@ Throw with specific failure message.
 
 No `@Cacheable` on list — pagination key explosion risk.
 
-**`updateUser(String id, UpdateUserRequest req, String ip, String ua) → UserResponse`**
+**`updateProfile(String id, UpdateProfileRequest req, String ip, String ua) → UserProfileResponse`**
 `@CacheEvict(value="users", key="#id") @Transactional`
 1. `findByIdAndStatusNot(id, DELETED)` → throw `UserNotFoundException`
-2. Load `UserPersonalDetails` via `findByUserId(id)` (create if absent — first profile update)
+2. Load `UserProfile` via `findByUserId(id)` (create if absent — first profile update)
 3. Capture old state for audit JSON
-4. Apply non-null fields from `req` to `UserPersonalDetails`
-5. Save `UserPersonalDetails`
-6. Audit `UPDATE` on `user_personal_details` with old/new JSON
+4. Apply non-null fields from `req` to `UserProfile`
+5. Save `UserProfile`
+6. Audit `UPDATE` on `user_profile` with old/new JSON
 7. Map `UserCredentials` → `UserResponse`
 
 **`deleteUser(String id, String ip, String ua)`**
@@ -691,4 +691,4 @@ Once Phase 2 complete + all tests passing:
 ## Last Updated
 
 2026-06-01 — Revised: user_credentials rename, SHA-256 token hashing, PasswordResetToken.emailId,
-             merged UserResponse, removed signup→PersonalDetails coupling, SessionResponse DTO added
+             merged UserResponse, removed signup→UserProfile coupling, SessionResponse DTO added

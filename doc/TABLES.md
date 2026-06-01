@@ -7,11 +7,24 @@
 
 ---
 
+## Naming Convention
+
+**Table prefix rule:**
+- `user_*` = per-user data (one user owns the rows; `user_id` FK with `ON DELETE CASCADE`): `user_credentials`, `user_profile`, `user_sessions`, `user_documents`, `user_verifications`
+- **unprefixed** = system / cross-cutting tables: `audit_logs` (events across all tables/users, `user_id` nullable), `password_reset_tokens` (transient auth plumbing)
+
+> The prefix is a signal: `user_` → per-user domain row that cascades on delete; no prefix → system/infra table. Consistency of meaning over consistency of spelling — do NOT rename `audit_logs` to `user_audit_logs`.
+
+**Layer convention:**
+`snake_case` table → `PascalCase` entity (`@Table(name=...)`) → `<Entity>Repository` → `<Concept>Service` → `<Concept>Controller` → `<Verb><Noun>Request` / `<Noun>Response` DTOs → inner `EnumType.STRING` enums.
+
+---
+
 ## Table Relationships
 
 ```
 user_credentials (root)
-├── user_personal_details (1:1, user_id FK)
+├── user_profile (1:1, user_id FK)
 ├── user_sessions (1:N, user_id FK)
 ├── password_reset_tokens (1:N, user_id FK)
 ├── user_documents (1:N, user_id FK)
@@ -60,12 +73,12 @@ CREATE TABLE user_credentials (
 
 ---
 
-### 2. user_personal_details
+### 2. user_profile
 **Purpose:** User profile information (Malaysia-specific)  
 **Access Frequency:** Medium (profile fetch, KYC)
 
 ```sql
-CREATE TABLE user_personal_details (
+CREATE TABLE user_profile (
     id VARCHAR(36) PRIMARY KEY,
     user_id VARCHAR(36) NOT NULL UNIQUE,
     salutation VARCHAR(50),
@@ -316,7 +329,7 @@ CREATE TABLE user_preferences (
 ### Phase 1 (Core — implement first)
 ```
 V1__Create_User_Credentials.sql
-V2__Create_User_Personal_Details.sql
+V2__Create_User_Profile.sql
 V3__Create_Password_Reset_Tokens.sql
 V4__Create_User_Sessions.sql
 V5__Create_Audit_Logs.sql
@@ -381,7 +394,7 @@ UPDATE user_credentials SET status = 'ACTIVE' WHERE id = ?;
 | UNIQUE | user_credentials.phone | Prevent duplicate phones |
 | UNIQUE | password_reset_tokens.token_hash | One token per reset |
 | UNIQUE | user_sessions.token_hash | One session per token |
-| UNIQUE | user_personal_details.user_id | One profile per user |
+| UNIQUE | user_profile.user_id | One profile per user |
 | UNIQUE | user_verifications.user_id | One verification per user |
 | UNIQUE | user_preferences.user_id | One preference per user |
 | FK | All *_id columns | Referential integrity |

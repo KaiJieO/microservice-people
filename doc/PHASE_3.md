@@ -102,7 +102,8 @@ ua(HttpServletRequest req)  -> req.getHeader("User-Agent")
 |---|---|---|---|
 | GET | /{id} | self-or-admin | `userService.getUserById(id)` |
 | GET | / | admin | `userService.getAllUsers(pageable)` |
-| PUT | /{id} | self-or-admin | `userService.updateUser(id, UpdateUserRequest, ip, ua)` |
+| PUT | /{id} | self-or-admin | `userService.updateProfile(id, UpdateProfileRequest, ip, ua)` → `UserProfileResponse` |
+| GET | /{id}/profile | self-or-admin | `userService.getProfile(id)` → `UserProfileResponse` |
 | PUT | /{id}/email | admin | `userService.updateEmail(id, newEmail, ip, ua)` |
 | DELETE | /{id} | admin | `userService.deleteUser(id, ip, ua)` → 204 |
 
@@ -158,7 +159,7 @@ src/main/java/com/microservice/people/controller/
 
 > No new services/repositories/entities. Possibly small request DTOs for inline bodies:
 > - `UpdateEmailRequest { @Email String email }` (for PUT /{id}/email)
-> - reuse existing: `SignupRequest`, `LoginRequest`, `UpdateUserRequest`, `PasswordResetRequest`, `PasswordResetConfirmRequest`, `ChangePasswordRequest`, `DocumentUploadRequest`, `DocumentReviewRequest`, `VerificationReviewRequest`.
+> - reuse existing: `SignupRequest`, `LoginRequest`, `UpdateProfileRequest`, `PasswordResetRequest`, `PasswordResetConfirmRequest`, `ChangePasswordRequest`, `DocumentUploadRequest`, `DocumentReviewRequest`, `VerificationReviewRequest`.
 
 ---
 

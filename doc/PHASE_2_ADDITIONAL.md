@@ -117,7 +117,7 @@ src/main/java/com/microservice/people/
 
 ## Entities
 
-Both: `@Data @NoArgsConstructor @AllArgsConstructor`, enums as inner `EnumType.STRING`. Mirror `UserPersonalDetails` style.
+Both: `@Data @NoArgsConstructor @AllArgsConstructor`, enums as inner `EnumType.STRING`. Mirror `UserProfile` style.
 
 ### UserDocument
 ```
@@ -319,7 +319,7 @@ VERIFIED   -> (terminal, no transitions)
 any other jump -> throw IllegalStateException
 ```
 
-> **Decision applied:** VERIFIED does NOT auto-flip `user_personal_details.identity_verified` — cross-table coupling deferred (keep services decoupled).
+> **Decision applied:** VERIFIED does NOT auto-flip `user_profile.identity_verified` — cross-table coupling deferred (keep services decoupled).
 
 ---
 

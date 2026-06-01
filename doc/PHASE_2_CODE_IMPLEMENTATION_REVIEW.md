@@ -98,7 +98,7 @@ public class UserResponse {
 }
 ```
 
-### UpdateUserRequest.java
+### UpdateProfileRequest.java
 ```java
 package com.microservice.people.dto;
 
@@ -111,7 +111,7 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpdateUserRequest {
+public class UpdateProfileRequest {
     @Size(max = 50)
     private String salutation;
 
@@ -1003,13 +1003,13 @@ public class AuthService {
 ```java
 package com.microservice.people.service;
 
-import com.microservice.people.dto.UpdateUserRequest;
+import com.microservice.people.dto.UpdateProfileRequest;
 import com.microservice.people.dto.UserResponse;
 import com.microservice.people.entity.UserCredentials;
-import com.microservice.people.entity.UserPersonalDetails;
+import com.microservice.people.entity.UserProfile;
 import com.microservice.people.exception.UserNotFoundException;
 import com.microservice.people.repository.UserCredentialsRepository;
-import com.microservice.people.repository.UserPersonalDetailsRepository;
+import com.microservice.people.repository.UserProfileRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -1024,16 +1024,16 @@ import java.time.LocalDateTime;
 public class UserService {
 
     private final UserCredentialsRepository userCredentialsRepository;
-    private final UserPersonalDetailsRepository userPersonalDetailsRepository;
+    private final UserProfileRepository userProfileRepository;
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
 
     public UserService(UserCredentialsRepository userCredentialsRepository,
-                      UserPersonalDetailsRepository userPersonalDetailsRepository,
+                      UserProfileRepository userProfileRepository,
                       AuditService auditService,
                       ObjectMapper objectMapper) {
         this.userCredentialsRepository = userCredentialsRepository;
-        this.userPersonalDetailsRepository = userPersonalDetailsRepository;
+        this.userProfileRepository = userProfileRepository;
         this.auditService = auditService;
         this.objectMapper = objectMapper;
     }
@@ -1055,41 +1055,41 @@ public class UserService {
 
     @CacheEvict(value = "users", key = "#id")
     @Transactional
-    public UserResponse updateUser(String id, UpdateUserRequest req, String ip, String ua) {
+    public UserProfileResponse updateProfile(String id, UpdateProfileRequest req, String ip, String ua) {
         UserCredentials user = userCredentialsRepository
                 .findByIdAndStatusNot(id, UserCredentials.Status.DELETED)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        UserPersonalDetails personalDetails = userPersonalDetailsRepository.findByUserId(id)
+        UserProfile profile = userProfileRepository.findByUserId(id)
                 .orElseGet(() -> {
-                    UserPersonalDetails newDetails = new UserPersonalDetails();
+                    UserProfile newDetails = new UserProfile();
                     newDetails.setUserId(id);
                     return newDetails;
                 });
 
-        UserPersonalDetails oldDetails = objectMapper.convertValue(personalDetails, UserPersonalDetails.class);
+        UserProfile oldDetails = objectMapper.convertValue(profile, UserProfile.class);
 
-        if (req.getFirstName() != null) personalDetails.setFirstName(req.getFirstName());
-        if (req.getLastName() != null) personalDetails.setLastName(req.getLastName());
-        if (req.getSalutation() != null) personalDetails.setSalutation(req.getSalutation());
-        if (req.getDateOfBirth() != null) personalDetails.setDateOfBirth(req.getDateOfBirth());
-        if (req.getGender() != null) personalDetails.setGender(UserPersonalDetails.Gender.valueOf(req.getGender()));
-        if (req.getIdentityType() != null) personalDetails.setIdentityType(UserPersonalDetails.IdentityType.valueOf(req.getIdentityType()));
-        if (req.getIdentityNumber() != null) personalDetails.setIdentityNumber(req.getIdentityNumber());
-        if (req.getCitizenship() != null) personalDetails.setCitizenship(UserPersonalDetails.Citizenship.valueOf(req.getCitizenship()));
-        if (req.getNationality() != null) personalDetails.setNationality(req.getNationality());
-        if (req.getAddress1() != null) personalDetails.setAddress1(req.getAddress1());
-        if (req.getAddress2() != null) personalDetails.setAddress2(req.getAddress2());
-        if (req.getAddress3() != null) personalDetails.setAddress3(req.getAddress3());
-        if (req.getCity() != null) personalDetails.setCity(req.getCity());
-        if (req.getState() != null) personalDetails.setState(UserPersonalDetails.State.valueOf(req.getState()));
-        if (req.getPostcode() != null) personalDetails.setPostcode(req.getPostcode());
+        if (req.getFirstName() != null) profile.setFirstName(req.getFirstName());
+        if (req.getLastName() != null) profile.setLastName(req.getLastName());
+        if (req.getSalutation() != null) profile.setSalutation(req.getSalutation());
+        if (req.getDateOfBirth() != null) profile.setDateOfBirth(req.getDateOfBirth());
+        if (req.getGender() != null) profile.setGender(UserProfile.Gender.valueOf(req.getGender()));
+        if (req.getIdentityType() != null) profile.setIdentityType(UserProfile.IdentityType.valueOf(req.getIdentityType()));
+        if (req.getIdentityNumber() != null) profile.setIdentityNumber(req.getIdentityNumber());
+        if (req.getCitizenship() != null) profile.setCitizenship(UserProfile.Citizenship.valueOf(req.getCitizenship()));
+        if (req.getNationality() != null) profile.setNationality(req.getNationality());
+        if (req.getAddress1() != null) profile.setAddress1(req.getAddress1());
+        if (req.getAddress2() != null) profile.setAddress2(req.getAddress2());
+        if (req.getAddress3() != null) profile.setAddress3(req.getAddress3());
+        if (req.getCity() != null) profile.setCity(req.getCity());
+        if (req.getState() != null) profile.setState(UserProfile.State.valueOf(req.getState()));
+        if (req.getPostcode() != null) profile.setPostcode(req.getPostcode());
 
-        userPersonalDetailsRepository.save(personalDetails);
+        userProfileRepository.save(profile);
 
-        auditService.log(id, "UPDATE", "user_personal_details", personalDetails.getId(),
+        auditService.log(id, "UPDATE", "user_profile", profile.getId(),
                 objectMapper.convertValue(oldDetails, Object.class),
-                objectMapper.convertValue(personalDetails, Object.class), ip, ua);
+                objectMapper.convertValue(profile, Object.class), ip, ua);
 
         return mapToUserResponse(user);
     }

@@ -1,7 +1,8 @@
 package com.microservice.people.controller;
 
 import com.microservice.people.dto.UpdateEmailRequest;
-import com.microservice.people.dto.UpdateUserRequest;
+import com.microservice.people.dto.UpdateProfileRequest;
+import com.microservice.people.dto.UserProfileResponse;
 import com.microservice.people.dto.UserResponse;
 import com.microservice.people.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,6 +30,12 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
+    @GetMapping("/{id}/profile")
+    @PreAuthorize("#id == authentication.name or hasRole('ADMIN')")
+    public ResponseEntity<UserProfileResponse> getProfile(@PathVariable String id) {
+        return ResponseEntity.ok(userService.getProfile(id));
+    }
+
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<UserResponse>> getAllUsers(
@@ -38,10 +45,10 @@ public class UserController {
 
     @PutMapping("/{id}")
     @PreAuthorize("#id == authentication.name or hasRole('ADMIN')")
-    public ResponseEntity<UserResponse> updateUser(@PathVariable String id,
-                                                   @Valid @RequestBody UpdateUserRequest req,
-                                                   HttpServletRequest httpReq) {
-        return ResponseEntity.ok(userService.updateUser(id, req,
+    public ResponseEntity<UserProfileResponse> updateProfile(@PathVariable String id,
+                                                             @Valid @RequestBody UpdateProfileRequest req,
+                                                             HttpServletRequest httpReq) {
+        return ResponseEntity.ok(userService.updateProfile(id, req,
                 httpReq.getRemoteAddr(), httpReq.getHeader("User-Agent")));
     }
 

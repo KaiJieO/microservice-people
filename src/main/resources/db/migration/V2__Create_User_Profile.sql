@@ -1,4 +1,4 @@
-CREATE TABLE user_personal_details (
+CREATE TABLE user_profile (
     id VARCHAR(36) PRIMARY KEY,
     user_id VARCHAR(36) NOT NULL UNIQUE,
     salutation VARCHAR(50),

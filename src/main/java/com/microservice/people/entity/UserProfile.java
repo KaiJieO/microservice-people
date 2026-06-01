@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "user_personal_details", indexes = {
+@Table(name = "user_profile", indexes = {
     @Index(name = "idx_user_id", columnList = "user_id"),
     @Index(name = "idx_identity_number", columnList = "identity_number"),
     @Index(name = "idx_citizenship", columnList = "citizenship")
@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserPersonalDetails {
+public class UserProfile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
