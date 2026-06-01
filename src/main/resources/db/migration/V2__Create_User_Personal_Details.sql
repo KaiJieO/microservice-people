@@ -19,7 +19,7 @@ CREATE TABLE user_personal_details (
     identity_verified BOOLEAN DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES user_signup(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES user_credentials(id) ON DELETE CASCADE,
     INDEX idx_user_id (user_id),
     INDEX idx_identity_number (identity_number),
     INDEX idx_citizenship (citizenship)

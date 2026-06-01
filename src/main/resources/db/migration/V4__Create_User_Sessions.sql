@@ -7,7 +7,7 @@ CREATE TABLE user_sessions (
     expires_at DATETIME NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES user_signup(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES user_credentials(id) ON DELETE CASCADE,
     INDEX idx_user_id (user_id),
     INDEX idx_expires_at (expires_at)
 );
