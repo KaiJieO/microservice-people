@@ -1,4 +1,4 @@
-CREATE TABLE user_signup (
+CREATE TABLE user_credentials (
     id VARCHAR(36) PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     phone VARCHAR(20) NOT NULL UNIQUE,
@@ -7,6 +7,8 @@ CREATE TABLE user_signup (
     status ENUM('ACTIVE', 'INACTIVE', 'SUSPENDED', 'DELETED') DEFAULT 'ACTIVE',
     email_verified BOOLEAN DEFAULT FALSE,
     phone_verified BOOLEAN DEFAULT FALSE,
+    email_verified_at DATETIME NULL,
+    phone_verified_at DATETIME NULL,
     last_login_at DATETIME NULL,
     login_attempt_count INT DEFAULT 0,
     locked_until DATETIME NULL,

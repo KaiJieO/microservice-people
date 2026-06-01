@@ -26,8 +26,8 @@ public class PasswordResetToken {
     @Column(nullable = false, length = 36)
     private String userId;
 
-    @Column(nullable = false, length = 255)
-    private String email;
+    @Column(nullable = false, length = 36, name = "email_id")
+    private String emailId;
 
     @Column(nullable = false, unique = true, length = 255)
     private String tokenHash;

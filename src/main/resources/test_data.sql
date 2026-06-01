@@ -7,10 +7,10 @@ DELETE FROM audit_logs;
 DELETE FROM user_sessions;
 DELETE FROM password_reset_tokens;
 DELETE FROM user_personal_details;
-DELETE FROM user_signup;
+DELETE FROM user_credentials;
 
 -- Sample Users
-INSERT INTO user_signup (id, email, phone, password_hash, roles, status, email_verified, phone_verified, last_login_at, login_attempt_count)
+INSERT INTO user_credentials (id, email, phone, password_hash, roles, status, email_verified, phone_verified, last_login_at, login_attempt_count)
 VALUES
   ('550e8400-e29b-41d4-a716-446655440001', 'alice@example.com', '+60123456789', '$2a$12$dXJ3SW6G7P50eS3q5iKUl.gB8.gd6Ydq9eHSjLPfvvxKqJeT2Xvei', 'USER', 'ACTIVE', TRUE, TRUE, NOW(), 0),
   ('550e8400-e29b-41d4-a716-446655440002', 'bob@example.com', '+60187654321', '$2a$12$dXJ3SW6G7P50eS3q5iKUl.gB8.gd6Ydq9eHSjLPfvvxKqJeT2Xvei', 'USER,ADMIN', 'ACTIVE', TRUE, TRUE, NOW(), 0),
@@ -26,10 +26,10 @@ VALUES
   ('650e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440004', 'Ms', 'Diana', 'Tan', '1995-11-28', 'F', 'PASSPORT', 'B87654321', 'FOREIGNER', 'Singaporean', '321 Merdeka Square', NULL, 'Johor Bahru', 'JOHOR', '80000', FALSE);
 
 -- Sample Password Reset Tokens
-INSERT INTO password_reset_tokens (id, user_id, email, token_hash, expires_at, used_at)
+INSERT INTO password_reset_tokens (id, user_id, email_id, token_hash, expires_at, used_at)
 VALUES
-  ('750e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440003', 'charlie@example.com', '$2a$12$reset123token456789abcdefghijklmnopqrstuvwxyz', DATE_ADD(NOW(), INTERVAL 5 MINUTE), NULL),
-  ('750e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440004', 'diana@example.com', '$2a$12$expiredtoken789abcdefghijklmnopqrstuvwxyz123456', DATE_SUB(NOW(), INTERVAL 1 HOUR), NOW());
+  ('750e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440003', '$2a$12$reset123token456789abcdefghijklmnopqrstuvwxyz', DATE_ADD(NOW(), INTERVAL 5 MINUTE), NULL),
+  ('750e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440004', '$2a$12$expiredtoken789abcdefghijklmnopqrstuvwxyz123456', DATE_SUB(NOW(), INTERVAL 1 HOUR), NOW());
 
 -- Sample User Sessions
 INSERT INTO user_sessions (id, user_id, token_hash, ip_address, user_agent, expires_at)
@@ -41,7 +41,7 @@ VALUES
 -- Sample Audit Logs
 INSERT INTO audit_logs (id, user_id, action, table_name, record_id, old_values, new_values, ip_address, user_agent)
 VALUES
-  ('950e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440001', 'CREATE', 'user_signup', '550e8400-e29b-41d4-a716-446655440001', NULL, '{"email":"alice@example.com","phone":"+60123456789","status":"ACTIVE"}', '192.168.1.100', 'Mozilla/5.0'),
-  ('950e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440002', 'CREATE', 'user_signup', '550e8400-e29b-41d4-a716-446655440002', NULL, '{"email":"bob@example.com","phone":"+60187654321","roles":"USER,ADMIN","status":"ACTIVE"}', '203.0.113.45', 'PostmanRuntime/7.26.8'),
+  ('950e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440001', 'CREATE', 'user_credentials', '550e8400-e29b-41d4-a716-446655440001', NULL, '{"email":"alice@example.com","phone":"+60123456789","status":"ACTIVE"}', '192.168.1.100', 'Mozilla/5.0'),
+  ('950e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440002', 'CREATE', 'user_credentials', '550e8400-e29b-41d4-a716-446655440002', NULL, '{"email":"bob@example.com","phone":"+60187654321","roles":"USER,ADMIN","status":"ACTIVE"}', '203.0.113.45', 'PostmanRuntime/7.26.8'),
   ('950e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440001', 'LOGIN', 'user_sessions', '850e8400-e29b-41d4-a716-446655440001', NULL, '{"session_id":"850e8400-e29b-41d4-a716-446655440001","user_id":"550e8400-e29b-41d4-a716-446655440001"}', '192.168.1.100', 'Mozilla/5.0'),
   ('950e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440002', 'LOGIN', 'user_sessions', '850e8400-e29b-41d4-a716-446655440003', NULL, '{"session_id":"850e8400-e29b-41d4-a716-446655440003","user_id":"550e8400-e29b-41d4-a716-446655440002"}', '203.0.113.45', 'PostmanRuntime/7.26.8');

@@ -9,7 +9,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "user_signup", indexes = {
+@Table(name = "user_credentials", indexes = {
     @Index(name = "idx_email", columnList = "email"),
     @Index(name = "idx_phone", columnList = "phone"),
     @Index(name = "idx_status", columnList = "status"),
@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserSignup {
+public class UserCredentials {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -46,6 +46,12 @@ public class UserSignup {
 
     @Column(columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean phoneVerified = false;
+
+    @Column(name = "email_verified_at", columnDefinition = "datetime")
+    private LocalDateTime emailVerifiedAt;
+
+    @Column(name = "phone_verified_at", columnDefinition = "datetime")
+    private LocalDateTime phoneVerifiedAt;
 
     @Column(name = "last_login_at", columnDefinition = "datetime")
     private LocalDateTime lastLoginAt;
