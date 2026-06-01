@@ -6,7 +6,7 @@
 DELETE FROM audit_logs;
 DELETE FROM user_sessions;
 DELETE FROM password_reset_tokens;
-DELETE FROM user_personal_details;
+DELETE FROM user_profile;
 DELETE FROM user_credentials;
 
 -- Sample Users
@@ -17,8 +17,8 @@ VALUES
   ('550e8400-e29b-41d4-a716-446655440003', 'charlie@example.com', '+60191234567', '$2a$12$dXJ3SW6G7P50eS3q5iKUl.gB8.gd6Ydq9eHSjLPfvvxKqJeT2Xvei', 'USER', 'INACTIVE', FALSE, FALSE, NULL, 0),
   ('550e8400-e29b-41d4-a716-446655440004', 'diana@example.com', '+60198765432', '$2a$12$dXJ3SW6G7P50eS3q5iKUl.gB8.gd6Ydq9eHSjLPfvvxKqJeT2Xvei', 'USER', 'SUSPENDED', TRUE, FALSE, NULL, 3);
 
--- Sample Personal Details
-INSERT INTO user_personal_details (id, user_id, salutation, first_name, last_name, date_of_birth, gender, identity_type, identity_number, citizenship, nationality, address1, address2, city, state, postcode, identity_verified)
+-- Sample Profile
+INSERT INTO user_profile (id, user_id, salutation, first_name, last_name, date_of_birth, gender, identity_type, identity_number, citizenship, nationality, address1, address2, city, state, postcode, identity_verified)
 VALUES
   ('650e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440001', 'Ms', 'Alice', 'Johnson', '1990-05-15', 'F', 'PASSPORT', 'A12345678', 'FOREIGNER', 'American', '123 Main St', 'Apt 101', 'Kuala Lumpur', 'SELANGOR', '50000', TRUE),
   ('650e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440002', 'Mr', 'Bob', 'Ahmad', '1988-03-22', 'M', 'NRIC', '880322015678', 'MALAYSIAN', 'Malaysian', '456 Jalan Raja', NULL, 'George Town', 'PENANG', '10000', TRUE),

@@ -114,13 +114,13 @@ public class CacheConfig {
 src/main/java/com/microservice/people/
 ├── entity/
 │   ├── UserCredentials.java              (user auth + signup)
-│   ├── UserPersonalDetails.java     (profile, Malaysia-specific)
+│   ├── UserProfile.java     (profile, Malaysia-specific)
 │   ├── PasswordResetToken.java      (temp reset tokens)
 │   ├── UserSession.java             (active JWT sessions)
 │   └── AuditLog.java                (audit trail)
 ├── repository/
 │   ├── UserCredentialsRepository.java
-│   ├── UserPersonalDetailsRepository.java
+│   ├── UserProfileRepository.java
 │   ├── PasswordResetTokenRepository.java
 │   ├── UserSessionRepository.java
 │   └── AuditLogRepository.java
@@ -129,7 +129,7 @@ src/main/java/com/microservice/people/
 
 src/main/resources/db/migration/
 ├── V1__Create_User_Credentials.sql
-├── V2__Create_User_Personal_Details.sql
+├── V2__Create_User_Profile.sql
 ├── V3__Create_Password_Reset_Tokens.sql
 ├── V4__Create_User_Sessions.sql
 └── V5__Create_Audit_Logs.sql
@@ -150,7 +150,7 @@ src/main/resources/db/migration/
 - `last_login_at`, `login_attempt_count`, `locked_until` (security tracking)
 - `created_at`, `updated_at` (timestamps)
 
-### 2. UserPersonalDetails (1:1 with UserCredentials)
+### 2. UserProfile (1:1 with UserCredentials)
 - `id` (UUID, PK)
 - `user_id` (FK → UserCredentials, unique)
 - `salutation`, `first_name`, `last_name` (profile)
@@ -379,7 +379,7 @@ mysql -u root --password=test123 microservice_people_db -e "SELECT version, desc
 ```powershell
 mysql -u root --password=test123 microservice_people_db < src\main\resources\test_data.sql
 ```
-Expected rows: user_credentials 4, user_personal_details 4, password_reset_tokens 2, user_sessions 3, audit_logs 4.
+Expected rows: user_credentials 4, user_profile 4, password_reset_tokens 2, user_sessions 3, audit_logs 4.
 
 ### 5. Query data
 ```powershell

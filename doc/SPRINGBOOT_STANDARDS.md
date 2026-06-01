@@ -213,7 +213,7 @@ public class {EntityName} {
 ## DTO Standards
 
 ### Naming Conventions
-- **Request DTO:** `{Action}Request.java` (e.g., LoginRequest, UpdateUserRequest)
+- **Request DTO:** `{Action}Request.java` (e.g., LoginRequest, UpdateProfileRequest)
 - **Response DTO:** `{Entity}Response.java` (e.g., UserResponse, UserProfileResponse)
 - **Error DTO:** `ErrorResponse.java`
 
@@ -310,8 +310,8 @@ public class UserController {
     
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('USER')")
-    public UserResponse updateUser(@PathVariable String id, 
-                                    @Valid @RequestBody UpdateUserRequest req) { }
+    public UserProfileResponse updateProfile(@PathVariable String id, 
+                                    @Valid @RequestBody UpdateProfileRequest req) { }
     
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -484,7 +484,7 @@ public class UserService {
     
     @CacheEvict(value = "users", key = "#userId")
     @Transactional
-    public void updateUserProfile(String userId, UpdateUserRequest req) {
+    public void updateProfile(String userId, UpdateProfileRequest req) {
         // Update DB, then evict cache so next fetch is fresh
     }
 }

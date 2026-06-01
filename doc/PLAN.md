@@ -84,13 +84,13 @@ microservice-people/
 │       │   │   │   └── AuditService.java
 │       │   │   ├── repository/
 │       │   │   │   ├── UserCredentialsRepository.java
-│       │   │   │   ├── UserPersonalDetailsRepository.java
+│       │   │   │   ├── UserProfileRepository.java
 │       │   │   │   ├── PasswordResetTokenRepository.java
 │       │   │   │   ├── UserSessionRepository.java
 │       │   │   │   └── AuditLogRepository.java
 │       │   │   ├── entity/
 │       │   │   │   ├── UserCredentials.java
-│       │   │   │   ├── UserPersonalDetails.java
+│       │   │   │   ├── UserProfile.java
 │       │   │   │   ├── PasswordResetToken.java
 │       │   │   │   ├── UserSession.java
 │       │   │   │   └── AuditLog.java
@@ -99,7 +99,7 @@ microservice-people/
 │       │   │   │   ├── LoginRequest.java
 │       │   │   │   ├── UserResponse.java
 │       │   │   │   ├── UserProfileResponse.java
-│       │   │   │   ├── UpdateUserRequest.java
+│       │   │   │   ├── UpdateProfileRequest.java
 │       │   │   │   ├── PasswordResetRequest.java
 │       │   │   │   └── ErrorResponse.java
 │       │   │   ├── exception/
@@ -121,7 +121,7 @@ microservice-people/
 │       │       ├── application.yml
 │       │       └── db/migration/
 │       │           ├── V1__Create_User_Credentials.sql
-│       │           ├── V2__Create_User_Personal_Details.sql
+│       │           ├── V2__Create_User_Profile.sql
 │       │           ├── V3__Create_Password_Reset_Tokens.sql
 │       │           ├── V4__Create_User_Sessions.sql
 │       │           └── V5__Create_Audit_Logs.sql
@@ -284,7 +284,7 @@ POST /api/passwords/reset → Always hits DB (update password)
 ```java
 // Update profile → evict user cache
 @CacheEvict(value = "users", key = "#userId")
-public void updateUserProfile(String userId, UpdateUserRequest req) { ... }
+public void updateProfile(String userId, UpdateProfileRequest req) { ... }
 
 // Change password → evict user cache (hash changed)
 @CacheEvict(value = "users", key = "#userId")
@@ -321,7 +321,7 @@ public void deleteUser(String userId) { ... }
 ## Next Steps
 
 **PHASE 1: Entity & Database**
-- Create entities: UserCredentials, UserPersonalDetails, PasswordResetToken, UserSession, AuditLog
+- Create entities: UserCredentials, UserProfile, PasswordResetToken, UserSession, AuditLog
 - Create repositories (JPA interfaces)
 - Create migrations (V1-V5)
 
@@ -410,7 +410,7 @@ ADMIN: Admin role only (list all users, delete users, change others' email)
 
 ### Core Tables (Phase 1)
 - `user_credentials` — email, phone, password_hash, roles, status, verification flags
-- `user_personal_details` — Malaysia-specific profile (NRIC, address, state, citizenship)
+- `user_profile` — Malaysia-specific profile (NRIC, address, state, citizenship)
 - `password_reset_tokens` — temporary tokens (5 min expiry)
 - `user_sessions` — active JWT sessions
 - `audit_logs` — complete audit trail of all changes
@@ -425,7 +425,7 @@ ADMIN: Admin role only (list all users, delete users, change others' email)
 ### Migrations
 ```
 V1__Create_User_Credentials.sql
-V2__Create_User_Personal_Details.sql
+V2__Create_User_Profile.sql
 V3__Create_Password_Reset_Tokens.sql
 V4__Create_User_Sessions.sql
 V5__Create_Audit_Logs.sql
@@ -575,7 +575,7 @@ VALUES (?, 'CREATE', 'user_credentials', ?, JSON_OBJECT(...), NOW());
 // Update
 INSERT INTO audit_logs 
 (user_id, action, table_name, record_id, old_values, new_values)
-VALUES (?, 'UPDATE', 'user_personal_details', ?, old_json, new_json);
+VALUES (?, 'UPDATE', 'user_profile', ?, old_json, new_json);
 
 // Delete (soft)
 INSERT INTO audit_logs 
@@ -655,7 +655,7 @@ Return UserResponse { id, email, first_name, last_name, created_at }
 4. `./gradlew bootRun` → starts on port 8081 (check logs for "Started MicroservicePeopleApplication")
 
 **Signup Flow**
-5. POST `/api/auth/signup` with valid password → user created in user_credentials + user_personal_details
+5. POST `/api/auth/signup` with valid password → user created in user_credentials + user_profile
 6. POST `/api/auth/signup` with same email → 409 Conflict (duplicate prevention)
 7. POST `/api/auth/signup` with weak password (e.g., "123") → 400 Invalid Password
 

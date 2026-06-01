@@ -1,6 +1,6 @@
 package com.microservice.people.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.microservice.people.entity.AuditLog;
 import com.microservice.people.repository.AuditLogRepository;
 import org.springframework.stereotype.Service;

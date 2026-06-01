@@ -128,7 +128,7 @@ Feature branch → Write V6__Add_Column.sql
 ### Migration Files
 ```
 V1__Create_User_Credentials.sql          (run first, never change)
-V2__Create_User_Personal_Details.sql (run second, never change)
+V2__Create_User_Profile.sql (run second, never change)
 V3__Create_Password_Reset_Tokens.sql (run third, never change)
 ```
 
@@ -204,7 +204,7 @@ CREATE TABLE IF NOT EXISTS user_credentials (
     ...
 );
 
-CREATE TABLE IF NOT EXISTS user_personal_details (
+CREATE TABLE IF NOT EXISTS user_profile (
     ...
 );
 
