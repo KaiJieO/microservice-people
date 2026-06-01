@@ -10,7 +10,7 @@
 ## Table Relationships
 
 ```
-user_signup (root)
+user_credentials (root)
 ├── user_personal_details (1:1, user_id FK)
 ├── user_sessions (1:N, user_id FK)
 ├── password_reset_tokens (1:N, user_id FK)
@@ -26,12 +26,12 @@ user_signup (root)
 
 ## Core Tables (Phase 1)
 
-### 1. user_signup
+### 1. user_credentials
 **Purpose:** User authentication & signup credentials  
 **Access Frequency:** High (every login, profile fetch)
 
 ```sql
-CREATE TABLE user_signup (
+CREATE TABLE user_credentials (
     id VARCHAR(36) PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     phone VARCHAR(20) NOT NULL UNIQUE,
@@ -86,7 +86,7 @@ CREATE TABLE user_personal_details (
     identity_verified BOOLEAN DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES user_signup(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES user_credentials(id) ON DELETE CASCADE,
     INDEX idx_user_id (user_id),
     INDEX idx_identity_number (identity_number),
     INDEX idx_citizenship (citizenship)
@@ -114,7 +114,7 @@ CREATE TABLE password_reset_tokens (
     expires_at DATETIME NOT NULL,
     used_at DATETIME NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES user_signup(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES user_credentials(id) ON DELETE CASCADE,
     INDEX idx_token_hash (token_hash),
     INDEX idx_expires_at (expires_at),
     INDEX idx_user_id (user_id)
@@ -142,7 +142,7 @@ CREATE TABLE user_sessions (
     expires_at DATETIME NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES user_signup(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES user_credentials(id) ON DELETE CASCADE,
     INDEX idx_user_id (user_id),
     INDEX idx_expires_at (expires_at)
 );
@@ -189,20 +189,25 @@ CREATE TABLE audit_logs (
 ## Future Tables (Structure Ready)
 
 ### 6. user_documents
-**Purpose:** KYC document uploads (passport, NRIC, proof of address)  
-**Access Frequency:** Low (KYC phase only)
+**Purpose:** KYC document uploads (NRIC or passport)  
+**Access Frequency:** Low (KYC phase only)  
+**Storage:** `file_path` = pointer, not bytes. Localhost now (local disk path); cloud later (S3/GCS object key — swap via config, no schema change).  
+**file_hash:** SHA-256 of file bytes. Dedupe + tamper check. Hashed in service (no JPA annotation).  
+**Rule:** one doc per type per user (UNIQUE user_id + doc_type).
 
 ```sql
 CREATE TABLE user_documents (
     id VARCHAR(36) PRIMARY KEY,
     user_id VARCHAR(36) NOT NULL,
-    doc_type ENUM('PASSPORT', 'NRIC', 'PROOF_OF_ADDRESS'),
-    file_path VARCHAR(500),
-    file_hash VARCHAR(255),
-    upload_status ENUM('PENDING', 'VERIFIED', 'REJECTED'),
-    rejection_reason VARCHAR(500),
+    doc_type ENUM('NRIC', 'PASSPORT') NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    file_hash VARCHAR(255) NOT NULL UNIQUE,
+    upload_status ENUM('PENDING', 'VERIFIED', 'REJECTED') DEFAULT 'PENDING',
+    rejection_reason VARCHAR(500) NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES user_signup(id) ON DELETE CASCADE,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES user_credentials(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_user_doc_type (user_id, doc_type),
     INDEX idx_user_id (user_id),
     INDEX idx_upload_status (upload_status)
 );
@@ -218,15 +223,14 @@ CREATE TABLE user_documents (
 CREATE TABLE user_verifications (
     id VARCHAR(36) PRIMARY KEY,
     user_id VARCHAR(36) NOT NULL UNIQUE,
-    kyc_status ENUM('PENDING', 'IN_REVIEW', 'VERIFIED', 'REJECTED'),
-    verification_level ENUM('LEVEL_1', 'LEVEL_2', 'LEVEL_3'),
+    kyc_status ENUM('PENDING', 'IN_REVIEW', 'VERIFIED', 'REJECTED') DEFAULT 'PENDING',
     submitted_at DATETIME,
     verified_at DATETIME,
     reviewer_id VARCHAR(36),
     reviewer_notes TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES user_signup(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES user_credentials(id) ON DELETE CASCADE,
     INDEX idx_user_id (user_id),
     INDEX idx_kyc_status (kyc_status)
 );
@@ -251,7 +255,7 @@ CREATE TABLE user_bank_accounts (
     is_primary BOOLEAN DEFAULT FALSE,
     verified BOOLEAN DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES user_signup(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES user_credentials(id) ON DELETE CASCADE,
     INDEX idx_user_id (user_id)
 );
 ```
@@ -274,7 +278,7 @@ CREATE TABLE user_devices (
     last_seen_at DATETIME,
     is_trusted BOOLEAN DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES user_signup(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES user_credentials(id) ON DELETE CASCADE,
     INDEX idx_user_id (user_id),
     INDEX idx_last_seen_at (last_seen_at)
 );
@@ -300,7 +304,7 @@ CREATE TABLE user_preferences (
     two_factor_enabled BOOLEAN DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES user_signup(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES user_credentials(id) ON DELETE CASCADE,
     INDEX idx_user_id (user_id)
 );
 ```
@@ -311,7 +315,7 @@ CREATE TABLE user_preferences (
 
 ### Phase 1 (Core — implement first)
 ```
-V1__Create_User_Signup.sql
+V1__Create_User_Credentials.sql
 V2__Create_User_Personal_Details.sql
 V3__Create_Password_Reset_Tokens.sql
 V4__Create_User_Sessions.sql
@@ -354,17 +358,17 @@ V10__Create_User_Preferences.sql
 
 ```sql
 -- Query: Get active users only
-SELECT * FROM user_signup WHERE status != 'DELETED';
+SELECT * FROM user_credentials WHERE status != 'DELETED';
 
 -- Delete: Mark as deleted (not DROP)
-UPDATE user_signup SET status = 'DELETED', updated_at = NOW() WHERE id = ?;
+UPDATE user_credentials SET status = 'DELETED', updated_at = NOW() WHERE id = ?;
 
 -- Cascade: Audit log entry
 INSERT INTO audit_logs (user_id, action, table_name, record_id, new_values) 
-VALUES (?, 'DELETE', 'user_signup', ?, JSON_OBJECT('status', 'DELETED'));
+VALUES (?, 'DELETE', 'user_credentials', ?, JSON_OBJECT('status', 'DELETED'));
 
 -- Recovery: Reactivate if needed
-UPDATE user_signup SET status = 'ACTIVE' WHERE id = ?;
+UPDATE user_credentials SET status = 'ACTIVE' WHERE id = ?;
 ```
 
 ---
@@ -373,8 +377,8 @@ UPDATE user_signup SET status = 'ACTIVE' WHERE id = ?;
 
 | Constraint | Table | Purpose |
 |---|---|---|
-| UNIQUE | user_signup.email | Prevent duplicate emails |
-| UNIQUE | user_signup.phone | Prevent duplicate phones |
+| UNIQUE | user_credentials.email | Prevent duplicate emails |
+| UNIQUE | user_credentials.phone | Prevent duplicate phones |
 | UNIQUE | password_reset_tokens.token_hash | One token per reset |
 | UNIQUE | user_sessions.token_hash | One session per token |
 | UNIQUE | user_personal_details.user_id | One profile per user |
@@ -392,4 +396,5 @@ UPDATE user_signup SET status = 'ACTIVE' WHERE id = ?;
 - **Timezone Default:** Asia/Kuala_Lumpur (Malaysia)
 - **Soft Delete:** Uses status ENUM instead of is_deleted flag (clearer intent)
 - **Audit Log Retention:** Permanent (no cleanup, legal requirement)
-- **Token Encryption:** password_reset_tokens.token_hash and user_bank_accounts.account_number_encrypted use bcrypt/AES before storage
+- **Token Hashing:** `password_reset_tokens.token_hash` and `user_sessions.token_hash` use **SHA-256** (deterministic → lookupable; no 72-byte BCrypt truncation). BCrypt is for passwords only.
+- **Bank Encryption:** `user_bank_accounts.account_number_encrypted` uses **AES** at rest (future phase).

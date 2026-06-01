@@ -32,24 +32,13 @@ Build the service + security layer. No controllers yet (Phase 3). Deliverables:
 
 ## Pre-work Fixes (Phase 1 — apply before Phase 2 code)
 
-### 1. Rename table: `user_signup` → `user_credentials`
+### 1. Rename table: `user_signup` → `user_credentials` ✅ DONE
 
-Table name change requires updating Phase 1 files. Since local dev only, safest path:
-
-**Option A (recommended — local dev):** Drop DB, update migrations, re-run:
-```sql
--- Update V1__Create_User_Signup.sql: change table name to user_credentials
--- Update V2–V5: all FOREIGN KEY ... REFERENCES user_signup(id) → user_credentials(id)
--- Drop and recreate DB, run bootRun → Flyway re-applies all 5 migrations
-```
-
-**Option B (append-only):** New `V6__Rename_User_Signup.sql`:
-```sql
-RENAME TABLE user_signup TO user_credentials;
-```
-FK constraints survive a rename in MySQL 8. No need to touch V2–V5.
-
-**Java entity:** Rename `UserSignup.java` → `UserCredentials.java`, update `@Table(name = "user_credentials")`, update all repository + service references.
+Applied across migrations, entity, repository, service, and docs. Final state:
+- Migration file `V1__Create_User_Credentials.sql`, table `user_credentials`
+- V2–V5 FKs reference `user_credentials(id)`
+- Entity `UserCredentials.java` with `@Table(name = "user_credentials")`
+- All repo/service references updated
 
 ### 2. Fix Redis properties (application.properties)
 `spring.redis.*` removed in Spring Boot 4.x:

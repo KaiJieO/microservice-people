@@ -4,7 +4,7 @@
 
 **Goal:** Complete Phase 2 — write 7 exception classes, 3 security classes, and 5 service classes, preceded by pre-work fixes to entities, repositories, migrations, and config.
 
-**Architecture:** Pre-work renames `UserSignup` → `UserCredentials` (entity + table + repos), updates `PasswordResetToken` to use `emailId` instead of `email`, and fixes Redis/JWT/CacheConfig. Then exceptions, security, and services are added following the fully-reviewed code in `doc/PHASE_2_CODE_IMPLEMENTATION_REVIEW.md`.
+**Architecture:** Pre-work renames `UserCredentials` → `UserCredentials` (entity + table + repos), updates `PasswordResetToken` to use `emailId` instead of `email`, and fixes Redis/JWT/CacheConfig. Then exceptions, security, and services are added following the fully-reviewed code in `doc/PHASE_2_CODE_IMPLEMENTATION_REVIEW.md`.
 
 **Tech Stack:** Spring Boot 4.x, Spring Security 7, JJWT 0.12.x, BCrypt, SHA-256, Redis (Lettuce), Flyway, Lombok, Jakarta Validation
 
@@ -13,12 +13,12 @@
 ## File Map
 
 **Modified:**
-- `src/main/resources/db/migration/V1__Create_User_Signup.sql` → rename table, add verification timestamp cols
+- `src/main/resources/db/migration/V1__Create_User_Credentials.sql` → rename table, add verification timestamp cols
 - `src/main/resources/db/migration/V2__Create_User_Personal_Details.sql` → update FK ref
 - `src/main/resources/db/migration/V3__Create_Password_Reset_Tokens.sql` → email→email_id col, update FK ref
 - `src/main/resources/db/migration/V4__Create_User_Sessions.sql` → update FK ref
-- `src/main/java/com/microservice/people/entity/UserSignup.java` → rename to `UserCredentials.java`, add fields, update @Table
-- `src/main/java/com/microservice/people/repository/UserSignupRepository.java` → rename to `UserCredentialsRepository.java`, add methods
+- `src/main/java/com/microservice/people/entity/UserCredentials.java` → rename to `UserCredentials.java`, add fields, update @Table
+- `src/main/java/com/microservice/people/repository/UserCredentialsRepository.java` → rename to `UserCredentialsRepository.java`, add methods
 - `src/main/java/com/microservice/people/entity/PasswordResetToken.java` → email→emailId
 - `src/main/java/com/microservice/people/repository/PasswordResetTokenRepository.java` → fix return type + add deleteByUserId
 - `src/main/java/com/microservice/people/config/CacheConfig.java` → add @EnableCaching
@@ -34,17 +34,17 @@
 
 ## Task 1: Update Flyway Migrations (Option A — local dev drop/recreate)
 
-> All FK references currently point to `user_signup`. We update all migrations in-place since this is local dev only.
+> All FK references currently point to `user_credentials`. We update all migrations in-place since this is local dev only.
 
 **Files:**
-- Modify: `src/main/resources/db/migration/V1__Create_User_Signup.sql`
+- Modify: `src/main/resources/db/migration/V1__Create_User_Credentials.sql`
 - Modify: `src/main/resources/db/migration/V2__Create_User_Personal_Details.sql`
 - Modify: `src/main/resources/db/migration/V3__Create_Password_Reset_Tokens.sql`
 - Modify: `src/main/resources/db/migration/V4__Create_User_Sessions.sql`
 
 - [ ] **Step 1: Update V1 — rename table, add verification timestamp columns**
 
-Replace entire `V1__Create_User_Signup.sql` with:
+Replace entire `V1__Create_User_Credentials.sql` with:
 
 ```sql
 CREATE TABLE user_credentials (
@@ -70,11 +70,11 @@ CREATE TABLE user_credentials (
 );
 ```
 
-- [ ] **Step 2: Update V2 — change FK ref from user_signup to user_credentials**
+- [ ] **Step 2: Update V2 — change FK ref from user_credentials to user_credentials**
 
 Open `V2__Create_User_Personal_Details.sql`. Find the line:
 ```sql
-FOREIGN KEY (user_id) REFERENCES user_signup(id) ON DELETE CASCADE,
+FOREIGN KEY (user_id) REFERENCES user_credentials(id) ON DELETE CASCADE,
 ```
 Change to:
 ```sql
@@ -101,11 +101,11 @@ CREATE TABLE password_reset_tokens (
 );
 ```
 
-- [ ] **Step 4: Update V4 — change FK ref from user_signup to user_credentials**
+- [ ] **Step 4: Update V4 — change FK ref from user_credentials to user_credentials**
 
 Open `V4__Create_User_Sessions.sql`. Find the line:
 ```sql
-FOREIGN KEY (user_id) REFERENCES user_signup(id) ON DELETE CASCADE,
+FOREIGN KEY (user_id) REFERENCES user_credentials(id) ON DELETE CASCADE,
 ```
 Change to:
 ```sql
@@ -122,10 +122,10 @@ Expected: no errors. Flyway will re-apply all 5 migrations on next bootRun.
 
 ---
 
-## Task 2: Rename UserSignup Entity → UserCredentials
+## Task 2: Rename UserCredentials Entity → UserCredentials
 
 **Files:**
-- Delete: `src/main/java/com/microservice/people/entity/UserSignup.java`
+- Delete: `src/main/java/com/microservice/people/entity/UserCredentials.java`
 - Create: `src/main/java/com/microservice/people/entity/UserCredentials.java`
 
 - [ ] **Step 1: Create UserCredentials.java**
@@ -209,16 +209,16 @@ public class UserCredentials {
 }
 ```
 
-- [ ] **Step 2: Delete old UserSignup.java**
+- [ ] **Step 2: Delete old UserCredentials.java**
 
-Delete the file `src/main/java/com/microservice/people/entity/UserSignup.java`.
+Delete the file `src/main/java/com/microservice/people/entity/UserCredentials.java`.
 
 ---
 
-## Task 3: Rename UserSignupRepository → UserCredentialsRepository
+## Task 3: Rename UserCredentialsRepository → UserCredentialsRepository
 
 **Files:**
-- Delete: `src/main/java/com/microservice/people/repository/UserSignupRepository.java`
+- Delete: `src/main/java/com/microservice/people/repository/UserCredentialsRepository.java`
 - Create: `src/main/java/com/microservice/people/repository/UserCredentialsRepository.java`
 
 - [ ] **Step 1: Create UserCredentialsRepository.java**
@@ -243,9 +243,9 @@ public interface UserCredentialsRepository extends JpaRepository<UserCredentials
 }
 ```
 
-- [ ] **Step 2: Delete old UserSignupRepository.java**
+- [ ] **Step 2: Delete old UserCredentialsRepository.java**
 
-Delete `src/main/java/com/microservice/people/repository/UserSignupRepository.java`.
+Delete `src/main/java/com/microservice/people/repository/UserCredentialsRepository.java`.
 
 ---
 
@@ -1397,6 +1397,6 @@ End-to-end smoke test after all tasks complete:
 2. `./gradlew bootRun` → app starts on 8081, Flyway applies 5 migrations cleanly
 3. MySQL `DESCRIBE user_credentials` shows `email_verified_at`, `phone_verified_at`
 4. MySQL `DESCRIBE password_reset_tokens` shows `email_id` (no `email`)
-5. No `UserSignup` or `UserSignupRepository` references remain in source
+5. No `UserCredentials` or `UserCredentialsRepository` references remain in source
 
 Unit + integration tests are Phase 5 scope per `doc/PHASE_2.md` (test starters replaced in Task 5 Step 2, ready for Phase 5).

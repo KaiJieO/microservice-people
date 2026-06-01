@@ -83,13 +83,13 @@ microservice-people/
 │       │   │   │   ├── SessionService.java
 │       │   │   │   └── AuditService.java
 │       │   │   ├── repository/
-│       │   │   │   ├── UserSignupRepository.java
+│       │   │   │   ├── UserCredentialsRepository.java
 │       │   │   │   ├── UserPersonalDetailsRepository.java
 │       │   │   │   ├── PasswordResetTokenRepository.java
 │       │   │   │   ├── UserSessionRepository.java
 │       │   │   │   └── AuditLogRepository.java
 │       │   │   ├── entity/
-│       │   │   │   ├── UserSignup.java
+│       │   │   │   ├── UserCredentials.java
 │       │   │   │   ├── UserPersonalDetails.java
 │       │   │   │   ├── PasswordResetToken.java
 │       │   │   │   ├── UserSession.java
@@ -120,7 +120,7 @@ microservice-people/
 │       │   └── resources/
 │       │       ├── application.yml
 │       │       └── db/migration/
-│       │           ├── V1__Create_User_Signup.sql
+│       │           ├── V1__Create_User_Credentials.sql
 │       │           ├── V2__Create_User_Personal_Details.sql
 │       │           ├── V3__Create_Password_Reset_Tokens.sql
 │       │           ├── V4__Create_User_Sessions.sql
@@ -158,7 +158,7 @@ Lombok included to reduce boilerplate on entities + DTOs.
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserSignup {
+public class UserCredentials {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
@@ -321,7 +321,7 @@ public void deleteUser(String userId) { ... }
 ## Next Steps
 
 **PHASE 1: Entity & Database**
-- Create entities: UserSignup, UserPersonalDetails, PasswordResetToken, UserSession, AuditLog
+- Create entities: UserCredentials, UserPersonalDetails, PasswordResetToken, UserSession, AuditLog
 - Create repositories (JPA interfaces)
 - Create migrations (V1-V5)
 
@@ -409,7 +409,7 @@ ADMIN: Admin role only (list all users, delete users, change others' email)
 **See TABLES.md for complete schema definition.**
 
 ### Core Tables (Phase 1)
-- `user_signup` — email, phone, password_hash, roles, status, verification flags
+- `user_credentials` — email, phone, password_hash, roles, status, verification flags
 - `user_personal_details` — Malaysia-specific profile (NRIC, address, state, citizenship)
 - `password_reset_tokens` — temporary tokens (5 min expiry)
 - `user_sessions` — active JWT sessions
@@ -424,7 +424,7 @@ ADMIN: Admin role only (list all users, delete users, change others' email)
 
 ### Migrations
 ```
-V1__Create_User_Signup.sql
+V1__Create_User_Credentials.sql
 V2__Create_User_Personal_Details.sql
 V3__Create_Password_Reset_Tokens.sql
 V4__Create_User_Sessions.sql
@@ -499,7 +499,7 @@ Body: { "token": "<UUID>", "newPassword": "NewP@ssw0rd" }
 ↓
 Service: Validate token (exists, not expired, hash matches)
          Hash new password with BCrypt
-         Update user_signup.password_hash
+         Update user_credentials.password_hash
          Delete token (mark used_at = NOW())
 ↓
 Audit Log: { "action": "PASSWORD_RESET", "user_id": "...", "timestamp": NOW() }
@@ -548,14 +548,14 @@ Response: { "message": "Password reset successfully" }
 // Delete endpoint (Admin only)
 DELETE /api/users/{id}
 ↓
-Update user_signup SET status = 'DELETED', updated_at = NOW() WHERE id = ?
+Update user_credentials SET status = 'DELETED', updated_at = NOW() WHERE id = ?
 ↓
-Audit Log: { "action": "DELETE", "table": "user_signup", "user_id": "..." }
+Audit Log: { "action": "DELETE", "table": "user_credentials", "user_id": "..." }
 ↓
 Query filter: WHERE status != 'DELETED' (auto-exclude deleted users)
 
 // Recovery (if needed)
-Update user_signup SET status = 'ACTIVE' WHERE id = ? AND status = 'DELETED'
+Update user_credentials SET status = 'ACTIVE' WHERE id = ? AND status = 'DELETED'
 ```
 
 **Why:** Comply with audit requirements, enable recovery, maintain referential integrity
@@ -570,7 +570,7 @@ Update user_signup SET status = 'ACTIVE' WHERE id = ? AND status = 'DELETED'
 // Insert
 INSERT INTO audit_logs 
 (user_id, action, table_name, record_id, new_values, created_at)
-VALUES (?, 'CREATE', 'user_signup', ?, JSON_OBJECT(...), NOW());
+VALUES (?, 'CREATE', 'user_credentials', ?, JSON_OBJECT(...), NOW());
 
 // Update
 INSERT INTO audit_logs 
@@ -580,7 +580,7 @@ VALUES (?, 'UPDATE', 'user_personal_details', ?, old_json, new_json);
 // Delete (soft)
 INSERT INTO audit_logs 
 (user_id, action, table_name, record_id, new_values)
-VALUES (?, 'DELETE', 'user_signup', ?, JSON_OBJECT('status', 'DELETED'));
+VALUES (?, 'DELETE', 'user_credentials', ?, JSON_OBJECT('status', 'DELETED'));
 
 // Login
 INSERT INTO audit_logs 
@@ -590,7 +590,7 @@ VALUES (?, 'LOGIN', 'user_sessions', ?, ip, agent);
 // Login failed
 INSERT INTO audit_logs 
 (user_id, action, table_name, ip_address)
-VALUES (?, 'LOGIN_FAILED', 'user_signup', ip);
+VALUES (?, 'LOGIN_FAILED', 'user_credentials', ip);
 ```
 
 **Retention:** Permanent (no cleanup, legal compliance)
@@ -655,7 +655,7 @@ Return UserResponse { id, email, first_name, last_name, created_at }
 4. `./gradlew bootRun` → starts on port 8081 (check logs for "Started MicroservicePeopleApplication")
 
 **Signup Flow**
-5. POST `/api/auth/signup` with valid password → user created in user_signup + user_personal_details
+5. POST `/api/auth/signup` with valid password → user created in user_credentials + user_personal_details
 6. POST `/api/auth/signup` with same email → 409 Conflict (duplicate prevention)
 7. POST `/api/auth/signup` with weak password (e.g., "123") → 400 Invalid Password
 
