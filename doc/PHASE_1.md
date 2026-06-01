@@ -24,11 +24,11 @@ Create database schema + JPA entity layer. Foundation for all services, controll
 
 ```java
 @Entity
-@Table(name = "user_signup")
+@Table(name = "user_credentials")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserSignup {
+public class UserCredentials {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
@@ -57,9 +57,9 @@ public class UserSignup {
 ### Step 2: Create Repositories
 
 ```java
-public interface UserSignupRepository extends JpaRepository<UserSignup, String> {
-    Optional<UserSignup> findByEmail(String email);
-    Optional<UserSignup> findByPhone(String phone);
+public interface UserCredentialsRepository extends JpaRepository<UserCredentials, String> {
+    Optional<UserCredentials> findByEmail(String email);
+    Optional<UserCredentials> findByPhone(String phone);
     // ... custom queries as needed
 }
 ```
@@ -69,8 +69,8 @@ public interface UserSignupRepository extends JpaRepository<UserSignup, String> 
 ### Step 3: Create Migrations (Flyway)
 
 ```sql
--- V1__Create_User_Signup.sql
-CREATE TABLE user_signup (
+-- V1__Create_User_Credentials.sql
+CREATE TABLE user_credentials (
     id VARCHAR(36) PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     phone VARCHAR(20) NOT NULL UNIQUE,
@@ -113,13 +113,13 @@ public class CacheConfig {
 ```
 src/main/java/com/microservice/people/
 ├── entity/
-│   ├── UserSignup.java              (user auth + signup)
+│   ├── UserCredentials.java              (user auth + signup)
 │   ├── UserPersonalDetails.java     (profile, Malaysia-specific)
 │   ├── PasswordResetToken.java      (temp reset tokens)
 │   ├── UserSession.java             (active JWT sessions)
 │   └── AuditLog.java                (audit trail)
 ├── repository/
-│   ├── UserSignupRepository.java
+│   ├── UserCredentialsRepository.java
 │   ├── UserPersonalDetailsRepository.java
 │   ├── PasswordResetTokenRepository.java
 │   ├── UserSessionRepository.java
@@ -128,7 +128,7 @@ src/main/java/com/microservice/people/
     └── CacheConfig.java
 
 src/main/resources/db/migration/
-├── V1__Create_User_Signup.sql
+├── V1__Create_User_Credentials.sql
 ├── V2__Create_User_Personal_Details.sql
 ├── V3__Create_Password_Reset_Tokens.sql
 ├── V4__Create_User_Sessions.sql
@@ -139,7 +139,7 @@ src/main/resources/db/migration/
 
 ## Entity Details
 
-### 1. UserSignup (root)
+### 1. UserCredentials (root)
 - `id` (UUID, PK)
 - `email` (unique, not null)
 - `phone` (unique, not null)
@@ -150,9 +150,9 @@ src/main/resources/db/migration/
 - `last_login_at`, `login_attempt_count`, `locked_until` (security tracking)
 - `created_at`, `updated_at` (timestamps)
 
-### 2. UserPersonalDetails (1:1 with UserSignup)
+### 2. UserPersonalDetails (1:1 with UserCredentials)
 - `id` (UUID, PK)
-- `user_id` (FK → UserSignup, unique)
+- `user_id` (FK → UserCredentials, unique)
 - `salutation`, `first_name`, `last_name` (profile)
 - `date_of_birth`, `gender` (demographics)
 - `identity_type` (NRIC or PASSPORT)
@@ -165,26 +165,26 @@ src/main/resources/db/migration/
 - `identity_verified` (KYC verification flag)
 - `created_at`, `updated_at`
 
-### 3. PasswordResetToken (N:1 with UserSignup)
+### 3. PasswordResetToken (N:1 with UserCredentials)
 - `id` (UUID, PK)
-- `user_id` (FK → UserSignup)
+- `user_id` (FK → UserCredentials)
 - `email` (denormalized)
 - `token_hash` (BCrypt hashed UUID, unique)
 - `expires_at` (5 min TTL)
 - `used_at` (one-time use marker)
 - `created_at`
 
-### 4. UserSession (N:1 with UserSignup)
+### 4. UserSession (N:1 with UserCredentials)
 - `id` (UUID, PK)
-- `user_id` (FK → UserSignup)
+- `user_id` (FK → UserCredentials)
 - `token_hash` (JWT token hash, unique)
 - `ip_address`, `user_agent` (request context)
 - `expires_at` (24h TTL)
 - `created_at`, `updated_at`
 
-### 5. AuditLog (N:1 with UserSignup)
+### 5. AuditLog (N:1 with UserCredentials)
 - `id` (UUID, PK)
-- `user_id` (FK → UserSignup, nullable)
+- `user_id` (FK → UserCredentials, nullable)
 - `action` (CREATE, UPDATE, DELETE, LOGIN, LOGIN_FAILED)
 - `table_name` (which table changed)
 - `record_id` (which record)
@@ -250,7 +250,7 @@ src/main/resources/db/migration/
 - [ ] Each table queryable via MySQL CLI
 - [ ] Foreign keys enforced (insert without FK fails)
 - [ ] Unique constraints enforced (duplicate email fails)
-- [ ] Indexes created (SHOW INDEXES FROM user_signup)
+- [ ] Indexes created (SHOW INDEXES FROM user_credentials)
 
 ### Manual Tests
 - [ ] Start app: `./gradlew bootRun`
@@ -260,8 +260,8 @@ src/main/resources/db/migration/
   ```sql
   USE microservice_people_db;
   SHOW TABLES;  -- should show 5 tables
-  DESC user_signup;  -- verify columns
-  SHOW INDEXES FROM user_signup;  -- verify indexes
+  DESC user_credentials;  -- verify columns
+  SHOW INDEXES FROM user_credentials;  -- verify indexes
   ```
 - [ ] Redis ping responds: `redis-cli ping` → PONG
 - [ ] Can reach app: `curl http://localhost:8081/actuator/health` (should error 404 but app responds)
@@ -379,18 +379,18 @@ mysql -u root --password=test123 microservice_people_db -e "SELECT version, desc
 ```powershell
 mysql -u root --password=test123 microservice_people_db < src\main\resources\test_data.sql
 ```
-Expected rows: user_signup 4, user_personal_details 4, password_reset_tokens 2, user_sessions 3, audit_logs 4.
+Expected rows: user_credentials 4, user_personal_details 4, password_reset_tokens 2, user_sessions 3, audit_logs 4.
 
 ### 5. Query data
 ```powershell
-mysql -u root --password=test123 microservice_people_db -e "SELECT id, email, status FROM user_signup;"
+mysql -u root --password=test123 microservice_people_db -e "SELECT id, email, status FROM user_credentials;"
 ```
 
 ### 6. Persistence test (restart keeps data)
 ```powershell
 # Ctrl+C, then rerun — Flyway skips applied migrations, data intact
 .\gradlew.bat bootRun --no-daemon
-mysql -u root --password=test123 microservice_people_db -e "SELECT COUNT(*) FROM user_signup;"   # → 4
+mysql -u root --password=test123 microservice_people_db -e "SELECT COUNT(*) FROM user_credentials;"   # → 4
 ```
 
 ### 7. Clean reset (fresh DB from V1)

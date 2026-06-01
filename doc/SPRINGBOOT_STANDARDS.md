@@ -203,8 +203,8 @@ public class {EntityName} {
 ```
 
 ### Naming Conventions
-- **Entity class:** `UserSignup.java` (PascalCase, singular)
-- **Table name:** `user_signup` (snake_case)
+- **Entity class:** `UserCredentials.java` (PascalCase, singular)
+- **Table name:** `user_credentials` (snake_case)
 - **Column names:** `email`, `phone`, `status` (snake_case, lowercase)
 - **Enum values:** `ACTIVE`, `INACTIVE`, `DELETED` (UPPERCASE)
 
@@ -594,7 +594,7 @@ class UserControllerTest {
 - No comments referencing past issues or callers (belongs in git history)
 
 ### Naming Conventions
-- **Classes:** PascalCase (UserSignup, AuthService)
+- **Classes:** PascalCase (UserCredentials, AuthService)
 - **Methods:** camelCase (createUser, validatePassword)
 - **Constants:** UPPER_SNAKE_CASE (MAX_PASSWORD_LENGTH)
 - **Variables:** camelCase (userId, passwordHash)

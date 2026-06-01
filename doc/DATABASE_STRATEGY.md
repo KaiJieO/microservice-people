@@ -34,7 +34,7 @@ spring.flyway.enabled=false
 ```
 
 ### How It Works
-1. Define entity (e.g., `UserSignup.java`)
+1. Define entity (e.g., `UserCredentials.java`)
 2. Start app: `./gradlew bootRun`
 3. Hibernate reads entities
 4. Hibernate generates DDL (CREATE TABLE statements)
@@ -78,7 +78,7 @@ spring.sql.init.mode=never
 ```
 
 ### How It Works
-1. Write migration SQL (e.g., `V1__Create_User_Signup.sql`)
+1. Write migration SQL (e.g., `V1__Create_User_Credentials.sql`)
 2. Commit to git
 3. Deploy app
 4. Flyway reads migrations from `classpath:db/migration`
@@ -127,7 +127,7 @@ Feature branch → Write V6__Add_Column.sql
 
 ### Migration Files
 ```
-V1__Create_User_Signup.sql          (run first, never change)
+V1__Create_User_Credentials.sql          (run first, never change)
 V2__Create_User_Personal_Details.sql (run second, never change)
 V3__Create_Password_Reset_Tokens.sql (run third, never change)
 ```
@@ -198,7 +198,7 @@ src/main/resources/
 
 Create `src/main/resources/schema.sql`:
 ```sql
-CREATE TABLE IF NOT EXISTS user_signup (
+CREATE TABLE IF NOT EXISTS user_credentials (
     id VARCHAR(36) PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     ...
@@ -309,7 +309,7 @@ Fix: Run via gradlew.bat <task> --no-daemon
 ### Step 1: Entity Change (Local)
 ```java
 @Entity
-public class UserSignup {
+public class UserCredentials {
     @Column(nullable = false)
     private String email;
     
@@ -321,20 +321,20 @@ public class UserSignup {
 ### Step 2: Restart (Local)
 ```bash
 ./gradlew bootRun
-# Hibernate generates: ALTER TABLE user_signup ADD COLUMN phone VARCHAR(20);
+# Hibernate generates: ALTER TABLE user_credentials ADD COLUMN phone VARCHAR(20);
 # Schema updated instantly
 ```
 
 ### Step 3: Migration (Before Prod Deploy)
 ```sql
--- V6__Add_Phone_To_User_Signup.sql
-ALTER TABLE user_signup ADD COLUMN phone VARCHAR(20);
+-- V6__Add_Phone_To_User_Credentials.sql
+ALTER TABLE user_credentials ADD COLUMN phone VARCHAR(20);
 ```
 
 ### Step 4: Deploy (Prod)
 ```bash
 # app-prod boots with Flyway enabled
-# Flyway runs V6__Add_Phone_To_User_Signup.sql
+# Flyway runs V6__Add_Phone_To_User_Credentials.sql
 # Schema updated safely with audit trail
 ```
 

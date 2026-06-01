@@ -96,6 +96,48 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(403).body(error);
     }
 
+    @ExceptionHandler(DuplicateDocumentException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateDocument(
+            DuplicateDocumentException ex,
+            HttpServletRequest request) {
+        ErrorResponse error = new ErrorResponse(
+            409,
+            "DuplicateDocumentException",
+            ex.getMessage(),
+            LocalDateTime.now(),
+            request.getRequestURI()
+        );
+        return ResponseEntity.status(409).body(error);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalState(
+            IllegalStateException ex,
+            HttpServletRequest request) {
+        ErrorResponse error = new ErrorResponse(
+            409,
+            "IllegalStateException",
+            ex.getMessage(),
+            LocalDateTime.now(),
+            request.getRequestURI()
+        );
+        return ResponseEntity.status(409).body(error);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(
+            IllegalArgumentException ex,
+            HttpServletRequest request) {
+        ErrorResponse error = new ErrorResponse(
+            400,
+            "IllegalArgumentException",
+            ex.getMessage(),
+            LocalDateTime.now(),
+            request.getRequestURI()
+        );
+        return ResponseEntity.status(400).body(error);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationError(
             MethodArgumentNotValidException ex,
